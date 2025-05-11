@@ -3,6 +3,7 @@ package com.example.medicaltopic.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,61 +87,101 @@ public class TopicService {
     }
 
     @Transactional
-    public TopicResponse updateTopic(Long id, TopicCreateRequest topicRequest, List<MultipartFile> files) {
+    public TopicResponse updateTopic(Long id, TopicCreateRequest topicUpdateRequest, List<MultipartFile> newFiles) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Topic not found with id: " + id));
 
-        topic.setTitle(topicRequest.getTitle());
+        topic.setTitle(topicUpdateRequest.getTitle());
 
-        // --- START OF IMPORTANT CHANGES ---
-        // Get the existing managed collection
-        List<TopicContentItem> existingContentItems = topic.getContentItems();
+        // Store old image public IDs to delete them from Cloudinary AFTER transaction if they are no longer used
+        List<String> cloudinaryIdsToDelete = new ArrayList<>();
 
-        // Delete old Cloudinary images from the items about to be removed
-        existingContentItems.stream()
-                .filter(item -> item.getContentType() == ContentType.IMAGE && item.getCloudinaryPublicId() != null)
-                .forEach(item -> cloudinaryService.deleteImage(item.getCloudinaryPublicId()));
+        // Get a mutable copy of the existing items to manage merging/removal
+        List<TopicContentItem> existingContentItems = new ArrayList<>(topic.getContentItems());
+        topic.getContentItems().clear(); // Clear the original collection to break old links for orphan removal logic
+                                        // and to correctly re-add items in the new order.
+        topicRepository.flush(); // Ensure the clear operation is processed and orphans are handled before re-adding.
+                                 // This also helps avoid issues if new items have same displayOrder as old ones momentarily.
 
-        // Clear the contents of the existing managed collection.
-        // This will trigger orphan removal for the old items correctly.
-        existingContentItems.clear();
-        // Hibernate might require a flush here to process deletions before adding new items,
-        // especially if there are unique constraints or other DB level checks.
-        // However, often it works without explicit flush. If issues persist, consider topicRepository.flush();
-        // topicRepository.flush(); // Optional, try without first.
 
-        // Prepare new content items
-        int fileIndex = 0;
-        List<TopicContentItem> newContentItems = new ArrayList<>(); // Temporary list to build new items
-        for (ContentItemRequestPart itemRequest : topicRequest.getContentItems()) {
-            TopicContentItem contentItem = new TopicContentItem();
-            contentItem.setContentType(itemRequest.getType());
-            contentItem.setDisplayOrder(itemRequest.getDisplayOrder());
-            contentItem.setTopic(topic); // Link back to topic
+        int newFileIndex = 0;
+        // Map new content items by display order for easier lookup if needed, though direct iteration is fine
+        // List<ContentItemRequestPart> newRequestedItems = topicUpdateRequest.getContentItems();
 
-            if (itemRequest.getType() == ContentType.TEXT) {
-                if (itemRequest.getTextValue() == null || itemRequest.getTextValue().isBlank()) {
-                    throw new IllegalArgumentException("Text content cannot be empty for TEXT type at order " + itemRequest.getDisplayOrder());
+        List<TopicContentItem> finalContentItems = new ArrayList<>();
+
+        for (ContentItemRequestPart requestedItemPart : topicUpdateRequest.getContentItems()) {
+            TopicContentItem itemToSave = new TopicContentItem();
+            itemToSave.setContentType(requestedItemPart.getType());
+            itemToSave.setDisplayOrder(requestedItemPart.getDisplayOrder());
+            itemToSave.setTopic(topic);
+
+            if (requestedItemPart.getType() == ContentType.TEXT) {
+                if (requestedItemPart.getTextValue() == null || requestedItemPart.getTextValue().isBlank()) {
+                    throw new IllegalArgumentException("Text content cannot be empty for TEXT type at order " + requestedItemPart.getDisplayOrder());
                 }
-                contentItem.setTextValue(itemRequest.getTextValue());
-            } else if (itemRequest.getType() == ContentType.IMAGE) {
-                if (files == null || fileIndex >= files.size() || files.get(fileIndex) == null || files.get(fileIndex).isEmpty()) {
-                    throw new IllegalArgumentException("Image file is missing for updated content item at display order " + itemRequest.getDisplayOrder());
+                itemToSave.setTextValue(requestedItemPart.getTextValue());
+            } else if (requestedItemPart.getType() == ContentType.IMAGE) {
+                // If an image is requested for this slot, a new file MUST be provided.
+                // To keep an old image, the client should not send an IMAGE part for that slot,
+                // or a more complex DTO is needed for updates (e.g. with existing image URLs/IDs).
+                // This simplified version assumes any IMAGE item in the update request implies a NEW image.
+
+                // Find if there was an old image at this display order to delete its Cloudinary asset
+                Optional<TopicContentItem> oldItemAtThisOrder = existingContentItems.stream()
+                    .filter(ci -> ci.getDisplayOrder().equals(requestedItemPart.getDisplayOrder()) && ci.getContentType() == ContentType.IMAGE)
+                    .findFirst();
+
+                if (oldItemAtThisOrder.isPresent() && oldItemAtThisOrder.get().getCloudinaryPublicId() != null) {
+                    cloudinaryIdsToDelete.add(oldItemAtThisOrder.get().getCloudinaryPublicId());
                 }
-                MultipartFile imageFile = files.get(fileIndex++);
+
+
+                if (newFiles == null || newFileIndex >= newFiles.size() || newFiles.get(newFileIndex) == null || newFiles.get(newFileIndex).isEmpty()) {
+                    // If strict replacement: throw new IllegalArgumentException("An image file must be provided for IMAGE content item at display order " + requestedItemPart.getDisplayOrder() + " during update.");
+                    // If trying to keep old image IF NO NEW FILE, this is where it gets complex without IDs.
+                    // For now, let's assume if IMAGE is specified, a NEW file is intended or it's an error.
+                    // This means to "keep" an image, the client would have to reconstruct the request with the old image URL if not sending a file.
+                    // OR, a better approach: if no new file, and an old image existed at this order, reuse it.
+                    // This is difficult because `existingContentItems` is now cleared.
+                    // We need to reconcile before clearing.
+                    // For now, simplified: Update always means new file for IMAGE type.
+
+                    // Let's adjust: if an image is *described* in the update, it must have a corresponding file.
+                     throw new IllegalArgumentException("A new image file must be provided for any IMAGE content item defined in the update request. Slot order: " + requestedItemPart.getDisplayOrder());
+                }
+
+                MultipartFile imageFile = newFiles.get(newFileIndex++);
                 Map<String, String> uploadResult = cloudinaryService.uploadImage(imageFile, "medical_topics");
-                contentItem.setImageUrl(uploadResult.get("url"));
-                contentItem.setCloudinaryPublicId(uploadResult.get("public_id"));
+                itemToSave.setImageUrl(uploadResult.get("url"));
+                itemToSave.setCloudinaryPublicId(uploadResult.get("public_id"));
             }
-            newContentItems.add(contentItem);
+            finalContentItems.add(itemToSave);
         }
 
-        // Add all new items to the existing (now cleared) managed collection.
-        // Do NOT do topic.setContentItems(newContentItems);
-        existingContentItems.addAll(newContentItems);
-        // --- END OF IMPORTANT CHANGES ---
+        // Add items that were in existingContentItems but NOT in the new request (based on displayOrder and type perhaps)
+        // to the cloudinaryIdsToDelete list. This handles items completely removed.
+        for(TopicContentItem oldItem : existingContentItems) {
+            boolean isInNewRequest = topicUpdateRequest.getContentItems().stream()
+                .anyMatch(newItem -> newItem.getDisplayOrder().equals(oldItem.getDisplayOrder()) && newItem.getType() == oldItem.getContentType());
+            if (!isInNewRequest && oldItem.getContentType() == ContentType.IMAGE && oldItem.getCloudinaryPublicId() != null) {
+                if (!cloudinaryIdsToDelete.contains(oldItem.getCloudinaryPublicId())) { // Avoid duplicates
+                    cloudinaryIdsToDelete.add(oldItem.getCloudinaryPublicId());
+                }
+            }
+        }
 
-        Topic updatedTopic = topicRepository.save(topic); // Save the parent topic
+
+        // topic.getContentItems().clear(); // ALREADY DONE ABOVE WITH FLUSH
+        topic.getContentItems().addAll(finalContentItems);
+
+        Topic updatedTopic = topicRepository.save(topic); // Persist changes
+
+        // Perform Cloudinary deletions after transaction commits successfully
+        // This requires this method not to be @Transactional or to use TransactionSynchronizationManager
+        // For simplicity here, we'll call delete. In a real app, consider an event-driven approach for robustness.
+        cloudinaryIdsToDelete.forEach(cloudinaryService::deleteImage);
+
         return mapToTopicResponse(updatedTopic);
     }
 
