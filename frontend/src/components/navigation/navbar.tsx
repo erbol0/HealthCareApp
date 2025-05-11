@@ -19,7 +19,7 @@ const Navbar = ({ user }: Props) => {
                             <Icons.logo className="w-8 h-8" />
                             Cura
                         </Link>
-                        <Link href="/topics" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/topics" className="flex items-center font-semibold gap-2 text-lg">
                             Topics
                         </Link>
                     </div>
