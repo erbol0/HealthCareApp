@@ -92,15 +92,26 @@ public class TopicService {
 
         topic.setTitle(topicRequest.getTitle());
 
-        // Delete old content items (and their Cloudinary images if they are image types)
-        topic.getContentItems().stream()
+        // --- START OF IMPORTANT CHANGES ---
+        // Get the existing managed collection
+        List<TopicContentItem> existingContentItems = topic.getContentItems();
+
+        // Delete old Cloudinary images from the items about to be removed
+        existingContentItems.stream()
                 .filter(item -> item.getContentType() == ContentType.IMAGE && item.getCloudinaryPublicId() != null)
                 .forEach(item -> cloudinaryService.deleteImage(item.getCloudinaryPublicId()));
-        topic.getContentItems().clear(); // Clears and triggers orphanRemoval if configured
 
-        // Add new content items (similar to create)
+        // Clear the contents of the existing managed collection.
+        // This will trigger orphan removal for the old items correctly.
+        existingContentItems.clear();
+        // Hibernate might require a flush here to process deletions before adding new items,
+        // especially if there are unique constraints or other DB level checks.
+        // However, often it works without explicit flush. If issues persist, consider topicRepository.flush();
+        // topicRepository.flush(); // Optional, try without first.
+
+        // Prepare new content items
         int fileIndex = 0;
-        List<TopicContentItem> newContentItems = new ArrayList<>();
+        List<TopicContentItem> newContentItems = new ArrayList<>(); // Temporary list to build new items
         for (ContentItemRequestPart itemRequest : topicRequest.getContentItems()) {
             TopicContentItem contentItem = new TopicContentItem();
             contentItem.setContentType(itemRequest.getType());
@@ -108,14 +119,12 @@ public class TopicService {
             contentItem.setTopic(topic); // Link back to topic
 
             if (itemRequest.getType() == ContentType.TEXT) {
-                 if (itemRequest.getTextValue() == null || itemRequest.getTextValue().isBlank()) {
+                if (itemRequest.getTextValue() == null || itemRequest.getTextValue().isBlank()) {
                     throw new IllegalArgumentException("Text content cannot be empty for TEXT type at order " + itemRequest.getDisplayOrder());
                 }
                 contentItem.setTextValue(itemRequest.getTextValue());
             } else if (itemRequest.getType() == ContentType.IMAGE) {
                 if (files == null || fileIndex >= files.size() || files.get(fileIndex) == null || files.get(fileIndex).isEmpty()) {
-                     // This could be an existing image if we were to implement partial updates
-                     // For now, assume new file is always provided for image type on update if specified
                     throw new IllegalArgumentException("Image file is missing for updated content item at display order " + itemRequest.getDisplayOrder());
                 }
                 MultipartFile imageFile = files.get(fileIndex++);
@@ -125,9 +134,13 @@ public class TopicService {
             }
             newContentItems.add(contentItem);
         }
-        topic.setContentItems(newContentItems); // Set the new list
 
-        Topic updatedTopic = topicRepository.save(topic);
+        // Add all new items to the existing (now cleared) managed collection.
+        // Do NOT do topic.setContentItems(newContentItems);
+        existingContentItems.addAll(newContentItems);
+        // --- END OF IMPORTANT CHANGES ---
+
+        Topic updatedTopic = topicRepository.save(topic); // Save the parent topic
         return mapToTopicResponse(updatedTopic);
     }
 
