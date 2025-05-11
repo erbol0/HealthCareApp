@@ -14,10 +14,13 @@ const Navbar = ({ user }: Props) => {
         <header className="sticky top-0 inset-x-0 w-full h-14 border-b border-border/40 bg-background/50 backdrop-blur-md z-50">
             <MaxWidthWrapper>
                 <div className="flex items-center justify-between w-full h-full">
-                    <div className="flex">
+                    <div className="flex items-center gap-6">
                         <Link href="/" className="flex items-center font-semibold gap-2 text-lg">
                             <Icons.logo className="w-8 h-8" />
                             Cura
+                        </Link>
+                        <Link href="/topics" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            Topics
                         </Link>
                     </div>
 
