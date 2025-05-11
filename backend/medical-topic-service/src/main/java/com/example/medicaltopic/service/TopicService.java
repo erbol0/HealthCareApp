@@ -40,10 +40,32 @@ public class TopicService {
         Topic topic = new Topic();
         topic.setTitle(topicRequest.getTitle());
 
+        // Validate that we have files for all IMAGE type content items
+        long imageItemCount = topicRequest.getContentItems().stream()
+                .filter(item -> item.getType() == ContentType.IMAGE)
+                .count();
+        if (imageItemCount > 0) {
+            if (files == null || files.size() != imageItemCount) {
+                throw new IllegalArgumentException(
+                    String.format("Expected %d image files but received %d", 
+                        imageItemCount, 
+                        files == null ? 0 : files.size())
+                );
+            }
+            // Validate that all files are not empty
+            for (int i = 0; i < files.size(); i++) {
+                if (files.get(i) == null || files.get(i).isEmpty()) {
+                    throw new IllegalArgumentException(
+                        String.format("Image file at index %d is null or empty", i)
+                    );
+                }
+            }
+        }
+
         // Process content items
-        // Match files with ContentItemRequestPart of type IMAGE by order
         int fileIndex = 0;
         List<TopicContentItem> contentItems = new ArrayList<>();
+        
         for (ContentItemRequestPart itemRequest : topicRequest.getContentItems()) {
             TopicContentItem contentItem = new TopicContentItem();
             contentItem.setContentType(itemRequest.getType());
@@ -52,20 +74,29 @@ public class TopicService {
 
             if (itemRequest.getType() == ContentType.TEXT) {
                 if (itemRequest.getTextValue() == null || itemRequest.getTextValue().isBlank()) {
-                    throw new IllegalArgumentException("Text content cannot be empty for TEXT type at order " + itemRequest.getDisplayOrder());
+                    throw new IllegalArgumentException(
+                        String.format("Text content cannot be empty for TEXT type at order %d", 
+                            itemRequest.getDisplayOrder())
+                    );
                 }
                 contentItem.setTextValue(itemRequest.getTextValue());
             } else if (itemRequest.getType() == ContentType.IMAGE) {
-                if (files == null || fileIndex >= files.size() || files.get(fileIndex) == null || files.get(fileIndex).isEmpty()) {
-                    throw new IllegalArgumentException("Image file is missing for content item at display order " + itemRequest.getDisplayOrder());
-                }
                 MultipartFile imageFile = files.get(fileIndex++);
-                Map<String, String> uploadResult = cloudinaryService.uploadImage(imageFile, "medical_topics");
-                contentItem.setImageUrl(uploadResult.get("url"));
-                contentItem.setCloudinaryPublicId(uploadResult.get("public_id"));
+                try {
+                    Map<String, String> uploadResult = cloudinaryService.uploadImage(imageFile, "medical_topics");
+                    contentItem.setImageUrl(uploadResult.get("url"));
+                    contentItem.setCloudinaryPublicId(uploadResult.get("public_id"));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(
+                        String.format("Failed to upload image for content item at order %d: %s", 
+                            itemRequest.getDisplayOrder(), 
+                            e.getMessage())
+                    );
+                }
             }
             contentItems.add(contentItem);
         }
+
         topic.setContentItems(contentItems);
         Topic savedTopic = topicRepository.save(topic);
         return mapToTopicResponse(savedTopic);
