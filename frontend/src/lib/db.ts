@@ -7,7 +7,15 @@ declare global {
 let prisma: PrismaClient;
 
 if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({
+    log: ["warn", "error"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+    errorFormat: "minimal",
+  });
 } else {
   if (!global.cachedPrisma) {
     // Log the DATABASE_URL for debugging (without sensitive info)
@@ -19,6 +27,7 @@ if (process.env.NODE_ENV === "production") {
 
     global.cachedPrisma = new PrismaClient({
       log: ["query", "error", "warn"],
+      errorFormat: "minimal",
     });
   }
 
