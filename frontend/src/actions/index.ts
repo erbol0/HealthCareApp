@@ -7,15 +7,15 @@ import createCheckoutSession from "./create-checkout-session";
 
 import getHealthTips from "./get-health-tips";
 import getMessags from "./get-messages";
-import getRecommndations from "./get-recommendations";
+import getRecommendations from "./get-recommendations";
 
 export {
-    updateUser,
-    createMessages,
-    createSymptom,
-    createMedication,
-    getHealthTips,
-    getMessags,
-    getRecommndations,
-    createCheckoutSession,
-}
+  updateUser,
+  createMessages,
+  createSymptom,
+  createMedication,
+  getHealthTips,
+  getMessags,
+  getRecommendations,
+  createCheckoutSession,
+};
