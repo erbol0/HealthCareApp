@@ -1,6 +1,6 @@
 "use client";
 
-import { getRecommndations } from "@/actions";
+import { getRecommendations } from "@/actions";
 import { Medication, Symptom, User } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
@@ -24,8 +24,7 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
     const { mutate } = useMutation({
         mutationKey: ["get-tips"],
         mutationFn: async () => {
-            setIsLoading(true);
-            const res = await getRecommndations({ symptoms, medications, user });
+            setIsLoading(true);            const res = await getRecommendations({ symptoms, medications, user });
             localStorage.setItem("cura_health_recommendations", res);
             setRecommendations(res);
             setIsLoading(false);
