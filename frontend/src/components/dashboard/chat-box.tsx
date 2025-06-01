@@ -224,7 +224,7 @@ const ChatBox = ({ isPro, user, symptoms, medications, messages }: Props) => {
               </p>
               {!isPro && (
                 <Button asChild size="sm" className="mt-4">
-                  <Link href="/dashboard/account/billing">Upgrade to Pro</Link>
+                  <Link href="/dashboard">Dashboard</Link>
                 </Button>
               )}
             </div>
