@@ -18,47 +18,48 @@ export async function POST(request: Request) {
     return new NextResponse("Invalid data passed", { status: 422 });
   }
 
-  const dbUser = await db.user.findFirst({
-    where: {
-      clerkId: user.id,
-    },
-  });
-
-  if (!dbUser) {
-    await db.user.create({
-      data: {
+  try {
+    const dbUser = await db.user.findFirst({
+      where: {
         id: user.id,
-        clerkId: user.id,
-        email: user.primaryEmailAddress?.emailAddress!,
-        firstName: user.firstName!,
-        lastName: user.lastName || "",
-        image: user.imageUrl,
       },
     });
-  }
 
-  try {
-    if (dbUser) {
+    const userData = {
+      age: Number(age),
+      bloodGroup,
+      gender,
+      height: Number(height),
+      weight: Number(weight),
+    };
+
+    if (!dbUser) {
+      await db.user.create({
+        data: {
+          ...userData,
+          id: user.id,
+          clerkId: user.id,
+          email: user.emailAddresses[0].emailAddress,
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
+          image: user.imageUrl,
+        },
+      });
+    } else {
       await db.user.update({
         where: {
-          clerkId: user.id,
+          id: user.id,
         },
-        data: {
-          age,
-          bloodGroup,
-          gender,
-          height,
-          weight,
-        },
+        data: userData,
       });
     }
 
     return NextResponse.json("User updated!", { status: 200 });
   } catch (error) {
+    console.error("Error in step-one:", error);
     if (error instanceof z.ZodError) {
       return new NextResponse("Invalid request data passed", { status: 422 });
     }
-
     return new NextResponse("Could not update user", { status: 500 });
   }
 }

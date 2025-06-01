@@ -6,6 +6,49 @@ declare global {
 
 let prisma: PrismaClient;
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function createPrismaClient(): Promise<PrismaClient> {
+  const client = new PrismaClient({
+    log:
+      process.env.NODE_ENV === "production"
+        ? ["warn", "error"]
+        : ["query", "error", "warn"],
+    errorFormat: "minimal",
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+  });
+
+  // Test the connection and implement retry logic
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      // Test the connection by running a simple query
+      await client.$connect();
+      console.log("Successfully connected to the database");
+      return client;
+    } catch (error) {
+      console.error(`Connection attempt ${attempt} failed:`, error);
+
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `Failed to connect to database after ${MAX_RETRIES} attempts`
+        );
+      }
+
+      // Wait before retrying
+      await new Promise((resolve) =>
+        setTimeout(resolve, RETRY_DELAY * attempt)
+      );
+    }
+  }
+
+  return client;
+}
+
 if (process.env.NODE_ENV === "production") {
   prisma = new PrismaClient({
     log: ["warn", "error"],
@@ -25,10 +68,14 @@ if (process.env.NODE_ENV === "production") {
       dbUrlParts.length > 1 ? dbUrlParts[1] : "unknown"
     );
 
-    global.cachedPrisma = new PrismaClient({
-      log: ["query", "error", "warn"],
-      errorFormat: "minimal",
-    });
+    createPrismaClient()
+      .then((client) => {
+        global.cachedPrisma = client;
+      })
+      .catch((error) => {
+        console.error("Failed to initialize Prisma client:", error);
+        process.exit(1); // Exit if we can't connect to the database
+      });
   }
 
   prisma = global.cachedPrisma;
