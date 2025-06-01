@@ -1,6 +1,6 @@
 ## 🌟 Introduction
 
-Cura is a cutting-edge AI-powered health assistant designed to help you monitor and manage your well-being. Built with Next.js, Clerk, Stripe, Prisma, and MongoDB, Cura provides real-time insights and personalized recommendations to keep you on top of your health.
+AkylMed is a cutting-edge AI-powered health assistant designed to help you monitor and manage your well-being. Built with Next.js, Clerk, Stripe, Prisma, and MongoDB, AkylMed provides real-time insights and personalized recommendations to keep you on top of your health.
 
 ## 🚀 Features
 
@@ -26,7 +26,7 @@ Cura is a cutting-edge AI-powered health assistant designed to help you monitor 
 
 ## 🛠️ Installation
 
-To run Cura locally, follow these steps:
+To run AkylMed locally, follow these steps:
 
 1. Clone the repository:
    ```bash
