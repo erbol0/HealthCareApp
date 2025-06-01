@@ -49,36 +49,35 @@ async function createPrismaClient(): Promise<PrismaClient> {
   return client;
 }
 
-if (process.env.NODE_ENV === "production") {
-  prisma = new PrismaClient({
-    log: ["warn", "error"],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
+// Check if we're on the server side
+if (typeof window === "undefined") {
+  if (process.env.NODE_ENV === "production") {
+    prisma = new PrismaClient({
+      log: ["warn", "error"],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
       },
-    },
-    errorFormat: "minimal",
-  });
-} else {
-  if (!global.cachedPrisma) {
-    // Log the DATABASE_URL for debugging (without sensitive info)
-    const dbUrlParts = process.env.DATABASE_URL?.split("@") || [];
-    console.log(
-      "Using database URL with host:",
-      dbUrlParts.length > 1 ? dbUrlParts[1] : "unknown"
-    );
-
-    createPrismaClient()
-      .then((client) => {
-        global.cachedPrisma = client;
-      })
-      .catch((error) => {
-        console.error("Failed to initialize Prisma client:", error);
-        process.exit(1); // Exit if we can't connect to the database
+      errorFormat: "minimal",
+    });
+  } else {
+    if (!global.cachedPrisma) {
+      global.cachedPrisma = new PrismaClient({
+        log: ["query", "error", "warn"],
+        datasources: {
+          db: {
+            url: process.env.DATABASE_URL,
+          },
+        },
+        errorFormat: "minimal",
       });
+    }
+    prisma = global.cachedPrisma;
   }
-
-  prisma = global.cachedPrisma;
+} else {
+  // Return a mock client when in the browser
+  prisma = {} as PrismaClient;
 }
 
 export const db = prisma;
