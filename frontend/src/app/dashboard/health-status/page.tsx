@@ -31,7 +31,7 @@ const HealthStatusPage = async () => {
   });
 
   return (
-    <div className="flex flex-col items-start w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
+    <div className="flex flex-col items-start w-full min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
       <div className="w-full p-2 md:p-8">
         <div className="flex items-center gap-3 mb-4">
           <HeartPulse className="w-8 h-8 text-pink-500" />
