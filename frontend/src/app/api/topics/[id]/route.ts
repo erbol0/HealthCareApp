@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const MEDICAL_TOPIC_SERVICE_URL = process.env.NEXT_PUBLIC_API_URL;
+const MEDICAL_TOPIC_SERVICE_URL = "http://localhost:8080";
 
 export async function GET(
   request: NextRequest,
