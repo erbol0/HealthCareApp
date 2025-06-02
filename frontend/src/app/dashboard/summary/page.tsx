@@ -41,7 +41,7 @@ const SummaryPage = async () => {
     <div className="flex flex-col items-start w-full min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
       <div className="w-full p-2 md:p-8">
         <div className="flex items-center gap-3 mb-4">
-          <HeartPulse className="w-8 h-8 text-pink-500" />
+          <HeartPulse className="w-8 h-8 text-orange-500" />
           <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100 tracking-tight">
             Health Summary
           </h1>
@@ -125,7 +125,7 @@ const SummaryPage = async () => {
 
           <Card className="shadow-lg border border-purple-100 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center gap-2 pb-2">
-              <Pill className="w-5 h-5 text-purple-500" />
+              <Pill className="w-5 h-5 text-orange-500" />
               <CardTitle className="text-lg font-semibold text-zinc-700 dark:text-zinc-100">
                 Medications
               </CardTitle>
@@ -151,7 +151,7 @@ const SummaryPage = async () => {
 
           <Card className="shadow-lg border border-red-100 dark:border-zinc-800">
             <CardHeader className="flex flex-row items-center gap-2 pb-2">
-              <Stethoscope className="w-5 h-5 text-red-500" />
+              <Stethoscope className="w-5 h-5 text-orange-500" />
               <CardTitle className="text-lg font-semibold text-zinc-700 dark:text-zinc-100">
                 Medical Issues
               </CardTitle>
