@@ -72,12 +72,22 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
       ) : (
         <div className="flex flex-col w-full">
           {recommendations ? (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              className="prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-primary/80 prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-primary/90"
-            >
-              {recommendations}
-            </ReactMarkdown>
+            recommendations.split("\n\n").map(
+              (recommendation, index) =>
+                recommendation.trim() && (
+                  <div
+                    key={index}
+                    className="mb-4 p-4 rounded-lg bg-white/50 hover:bg-white/70 transition-all duration-300"
+                  >
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      className="prose prose-sm max-w-none prose-headings:font-semibold prose-headings:text-primary/80 prose-p:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary hover:prose-a:text-primary/80 prose-strong:text-primary/90"
+                    >
+                      {recommendation}
+                    </ReactMarkdown>
+                  </div>
+                )
+            )
           ) : (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="p-3 rounded-full bg-destructive/10 mb-3">
