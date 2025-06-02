@@ -32,9 +32,9 @@ export const LINKS = [
   {
     label: "AI Chat",
     href: "/dashboard/ai",
-    icon: FileIcon,
+    icon: BotIcon,
   },
-  { label: "Topics", href: "/topics", icon: LayoutGridIcon },
+  { label: "Topics", href: "/topics", icon: FileIcon },
   {
     label: "Settings",
     href: "/dashboard/account/settings",
