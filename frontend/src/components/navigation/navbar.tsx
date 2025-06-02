@@ -53,7 +53,7 @@ const Navbar = ({ user }: Props) => {
                   href="/auth/signup"
                   className={buttonVariants({ size: "sm" })}
                 >
-                  Start for free
+                  Start now
                 </Link>
               </>
             )}

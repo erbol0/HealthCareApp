@@ -1,14 +1,7 @@
 import { FEATURES } from "./features";
-import { PLANS } from "./pricing";
 import { inter, dmSans } from "./fonts";
 import { STEPS } from "./steps";
 import { LINKS } from "./links";
+import { INFO_CARDS } from "./info-cards";
 
-export {
-    FEATURES,
-    PLANS,
-    inter,
-    dmSans,
-    STEPS,
-    LINKS,
-}
+export { FEATURES, inter, dmSans, STEPS, LINKS, INFO_CARDS };

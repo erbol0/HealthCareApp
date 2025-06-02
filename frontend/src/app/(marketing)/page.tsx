@@ -1,6 +1,6 @@
 import { AnimationContainer, Icons, MaxWidthWrapper } from "@/components";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { FEATURES, PLANS } from "@/constants";
+import { FEATURES, INFO_CARDS } from "@/constants";
 import {
   Card,
   CardContent,
@@ -46,7 +46,7 @@ const HomePage = () => {
           </p>
           <div className="flex flex-row md:flex-row items-center justify-center gap-4 mt-8 w-full">
             <Link href="/dashboard" className={buttonVariants()}>
-              Start for free
+              Start now
               <ArrowRightIcon className="w-4 h-4 ml-1.5" />
             </Link>
             <Link href="#" className={buttonVariants({ variant: "black" })}>
@@ -102,86 +102,51 @@ const HomePage = () => {
         </div>
       </MaxWidthWrapper>
 
-      {/* pricing */}
+      {/* features showcase */}
       <MaxWidthWrapper className="py-10">
         <div className="flex flex-col text-start md:text-center justify-center w-full py-8 max-w-md mx-auto">
           <h2 className="text-3xl md:text-4xl font-semibold font-heading text-foreground mt-6">
-            Choose a <span className="text-gradient">plan</span> that works for
-            you
+            Experience the <span className="text-gradient">power</span> of AI
+            Healthcare
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg">
-            Get started with our free plan or upgrade to a premium plan for
-            additional features
+            Discover how AkylMed revolutionizes your healthcare journey with
+            cutting-edge features
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 py-8 gap-6 max-w-3xl px-0 lg:px-8 mx-auto w-full">
-          {PLANS.map((plan, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 py-8 gap-6 max-w-7xl px-0 lg:px-8 mx-auto w-full">
+          {INFO_CARDS.map((card, index) => (
             <AnimationContainer
-              key={plan.name}
+              key={card.name}
               delay={baseDelay + index / 5}
               className="flex flex-col w-full h-full"
             >
-              <Card
-                className={cn(
-                  "w-full h-full flex flex-col rounded-xl border-2 shadow-none",
-                  plan.name === "Pro" ? "border-primary" : "border-border"
-                )}
-              >
+              <Card className="w-full h-full flex flex-col rounded-xl border-2 shadow-none bg-gradient-to-br from-background to-muted/50 hover:shadow-lg transition-all duration-300">
                 <CardHeader>
-                  <CardTitle className="font-heading">{plan.name}</CardTitle>
-                  <CardDescription>{plan.info}</CardDescription>
-                  <h5 className="text-3xl md:text-4xl font-semibold font-heading pt-2">
-                    ${plan.price}
-                    <span className="text-sm text-muted-foreground font-normal">
-                      {plan.name === "Pro" ? "(one time)" : ""}
-                    </span>
-                  </h5>
+                  <div className="text-4xl mb-4">{card.icon}</div>
+                  <CardTitle className="font-heading">{card.name}</CardTitle>
+                  <CardDescription>{card.info}</CardDescription>
                 </CardHeader>
-                <CardContent className="w-full">
-                  <ul className="flex flex-col items-start gap-4">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <CheckIcon
-                          className={cn(
-                            "w-5 h-5",
-                            plan.name === "Pro"
-                              ? "text-primary"
-                              : "text-foreground"
-                          )}
-                        />
-                        <TooltipProvider>
-                          <Tooltip delayDuration={0}>
-                            <TooltipTrigger asChild>
-                              <p
-                                className={cn(
-                                  "text-sm text-muted-foreground",
-                                  feature.tooltip &&
-                                    "border-b border-dotted border-border cursor-pointer"
-                                )}
-                              >
-                                {feature.text}
-                              </p>
-                            </TooltipTrigger>
-                            {feature.tooltip && (
-                              <TooltipContent>{feature.tooltip}</TooltipContent>
-                            )}
-                          </Tooltip>
-                        </TooltipProvider>
+                <CardContent className="flex-grow">
+                  <ul className="space-y-3">
+                    {card.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span className="text-sm text-muted-foreground">
+                          {feature}
+                        </span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter className="mt-auto w-full">
-                  <Button
-                    asChild
-                    variant={plan.name === "Pro" ? "default" : "secondary"}
-                  >
+                <CardFooter className="pt-6">
+                  <Button asChild variant="ghost" className="w-full group">
                     <Link
-                      href={plan.btn.href}
-                      className="flex items-center w-full group"
+                      href="/dashboard"
+                      className="flex items-center justify-center"
                     >
-                      {plan.btn.text}
-                      <ArrowRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-all" />
+                      Explore Now
+                      <ArrowRightIcon className="w-4 h-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </Button>
                 </CardFooter>
