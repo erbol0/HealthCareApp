@@ -40,19 +40,20 @@ const DashboardPage = async () => {
   console.log("dbUser", dbUser);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 w-full gap-6 lg:p-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 w-full gap-6 lg:p-8 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
       <div className="flex flex-col md:col-span-1 xl:col-span-4 gap-6 w-full">
-        <div className="flex flex-col items-center justify-center w-full border border-border/60 rounded-xl py-6 md:py-8">
-          <div className="w-20 h-20 mx-auto">
+        <div className="flex flex-col items-center justify-center w-full border border-border/60 rounded-xl py-8 backdrop-blur-sm bg-white/50 hover:bg-white/60 transition-colors">
+          <div className="w-24 h-24 mx-auto ring-2 ring-primary/20 rounded-full p-1">
             <Image
               src={dbUser?.image!}
               alt={dbUser?.firstName!}
               width={1024}
               height={1024}
-              className="rounded-full w-full h-full"
+              className="rounded-full w-full h-full object-cover"
             />
           </div>
-          <h4 className="text-lg font-medium mt-4">
+          <h4 className="text-xl font-semibold mt-4 text-foreground/90">
             {dbUser?.firstName} {dbUser?.lastName}
           </h4>
           <p className="text-sm text-muted-foreground mt-1">
@@ -60,7 +61,10 @@ const DashboardPage = async () => {
           </p>
           <Link
             href="/dashboard/account/settings"
-            className={buttonVariants({ size: "sm", className: "mt-4" })}
+            className={buttonVariants({
+              size: "sm",
+              className: "mt-4 hover:scale-105 transition-transform",
+            })}
           >
             Update Profile
           </Link>
@@ -170,9 +174,11 @@ const DashboardPage = async () => {
             </Link>
           </MagicCard>
         </div>
-        <div className="flex flex-col items-start w-full">
-          <h3 className="text-xl font-semibold">Health Recommendations</h3>
-          <div className="max-h-96 w-full mt-7">
+        <div className="flex flex-col items-start w-full space-y-4">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Health Recommendations
+          </h3>
+          <div className="max-h-[calc(100vh-24rem)] w-full">
             <Recommendations
               symptoms={symptoms}
               medications={medications}
