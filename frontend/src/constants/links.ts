@@ -5,7 +5,6 @@ import {
   LayoutGridIcon,
   NotepadTextIcon,
   StethoscopeIcon,
-  FileTextIcon,
 } from "lucide-react";
 
 export const LINKS = [
@@ -34,7 +33,7 @@ export const LINKS = [
     href: "/dashboard/ai",
     icon: BotIcon,
   },
-  { label: "Topics", href: "/topics", icon: FileTextIcon },
+  { label: "Topics", href: "/dashboard/topics", icon: LayoutGridIcon },
   {
     label: "Settings",
     href: "/dashboard/account/settings",
