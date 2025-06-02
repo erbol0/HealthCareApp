@@ -33,7 +33,7 @@ export const LINKS = [
     href: "/dashboard/ai",
     icon: BotIcon,
   },
-  { label: "Topics", href: "/dashboard/topics", icon: LayoutGridIcon },
+  { label: "Topics", href: "/topics", icon: LayoutGridIcon },
   {
     label: "Settings",
     href: "/dashboard/account/settings",
