@@ -73,13 +73,16 @@ const HealthTips = ({ symptoms, medications, user }: Props) => {
 
   const parseTipsIntoSections = (markdown: string): TipSection[] => {
     const sections: TipSection[] = [];
+    let currentSection: TipSection | undefined = undefined;
+
     const lines = markdown.split("\n").filter((line) => line.trim());
-    let currentSection: TipSection | null = null;
 
     lines.forEach((line) => {
       const trimmedLine = line.trim();
       if (trimmedLine.startsWith("#")) {
-        if (currentSection?.tips.length) sections.push(currentSection);
+        if (currentSection) {
+          sections.push(currentSection);
+        }
         currentSection = {
           category: trimmedLine.replace(/#/g, "").trim(),
           icon: getCategoryIcon(trimmedLine),
@@ -90,7 +93,9 @@ const HealthTips = ({ symptoms, medications, user }: Props) => {
       }
     });
 
-    if (currentSection?.tips.length) sections.push(currentSection);
+    if (currentSection) {
+      sections.push(currentSection);
+    }
     return sections;
   };
 
