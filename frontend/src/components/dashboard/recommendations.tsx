@@ -12,6 +12,7 @@ import {
   Pill,
   Heart,
   Shield,
+  RefreshCw,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -106,12 +107,16 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
 
   useEffect(() => {
     const storedTips = localStorage.getItem("cura_health_recommendations");
-    if (storedTips) {
+    if (storedTips && storedTips.trim()) {
       setRecommendations(storedTips);
     } else {
       mutate();
     }
   }, [mutate]);
+
+  const handleRefresh = () => {
+    mutate();
+  };
 
   return (
     <div className="flex flex-col w-full p-6 rounded-xl border border-border/80 bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
@@ -122,6 +127,14 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
         <h3 className="text-lg font-semibold bg-gradient-to-r from-primary/80 to-secondary/80 bg-clip-text text-transparent">
           Personal Health Recommendations
         </h3>
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading}
+          className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-md border border-primary/30 bg-white/70 hover:bg-primary/10 text-primary text-sm font-medium transition-colors disabled:opacity-60"
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
       {isLoading ? (
@@ -136,38 +149,49 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
         </div>
       ) : (
         <div className="flex flex-col w-full gap-6">
-          {recommendations ? (
-            parseRecommendations(recommendations).map((section, idx) => (
-              <div
-                key={idx}
-                className="group relative overflow-hidden rounded-lg border border-border/50 bg-white/50 p-6 transition-all hover:shadow-md hover:scale-[1.02]"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          {recommendations && recommendations.trim() ? (
+            parseRecommendations(recommendations).length > 0 ? (
+              parseRecommendations(recommendations).map((section, idx) => (
+                <div
+                  key={idx}
+                  className="group relative overflow-hidden rounded-lg border border-border/50 bg-white/50 p-6 transition-all hover:shadow-md hover:scale-[1.02]"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                <div className="relative">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                      {section.icon}
+                  <div className="relative">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        {section.icon}
+                      </div>
+                      <h4 className="text-lg font-semibold text-primary/80">
+                        {section.title}
+                      </h4>
                     </div>
-                    <h4 className="text-lg font-semibold text-primary/80">
-                      {section.title}
-                    </h4>
-                  </div>
 
-                  <ul className="space-y-2">
-                    {section.content.map((item, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-2 text-muted-foreground"
-                      >
-                        <AlertCircle className="w-4 h-4 mt-1 text-primary/60" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+                    <ul className="space-y-2">
+                      {section.content.map((item, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-muted-foreground"
+                        >
+                          <AlertCircle className="w-4 h-4 mt-1 text-primary/60" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="p-3 rounded-full bg-destructive/10 mb-3">
+                  <XCircle className="w-8 h-8 text-destructive" />
+                </div>
+                <p className="text-sm text-muted-foreground font-medium text-center">
+                  No recommendations available at the moment
+                </p>
               </div>
-            ))
+            )
           ) : (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="p-3 rounded-full bg-destructive/10 mb-3">
