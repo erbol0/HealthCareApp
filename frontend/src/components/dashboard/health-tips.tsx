@@ -64,7 +64,7 @@ const HealthTips = ({ symptoms, medications, user }: Props) => {
 
   useEffect(() => {
     const storedTips = localStorage.getItem("cura_health_tips");
-    if (storedTips && storedTips.trim()) {
+    if (storedTips) {
       setTips(storedTips);
     } else {
       mutate();
@@ -142,45 +142,34 @@ const HealthTips = ({ symptoms, medications, user }: Props) => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tips && tips.trim() ? (
-            parseTipsIntoSections(tips).length > 0 ? (
-              parseTipsIntoSections(tips).map((section, idx) => (
-                <Card
-                  key={idx}
-                  className="group hover:shadow-lg transition-all duration-300 border-primary/20"
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        {section.icon}
-                      </div>
-                      <h3 className="text-lg font-semibold text-primary">
-                        {section.category}
-                      </h3>
+          {tips ? (
+            parseTipsIntoSections(tips).map((section, idx) => (
+              <Card
+                key={idx}
+                className="group hover:shadow-lg transition-all duration-300 border-primary/20"
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      {section.icon}
                     </div>
-                    <ul className="space-y-3">
-                      {section.tips.map((tip, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 group/tip"
-                        >
-                          <ArrowRight className="w-4 h-4 mt-1 text-primary/60 group-hover/tip:text-primary transition-colors" />
-                          <span className="text-muted-foreground group-hover/tip:text-foreground transition-colors">
-                            {tip}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-10">
-                <p className="text-muted-foreground">
-                  No health tips available. Click refresh to generate new tips.
-                </p>
-              </div>
-            )
+                    <h3 className="text-lg font-semibold text-primary">
+                      {section.category}
+                    </h3>
+                  </div>
+                  <ul className="space-y-3">
+                    {section.tips.map((tip, i) => (
+                      <li key={i} className="flex items-start gap-2 group/tip">
+                        <ArrowRight className="w-4 h-4 mt-1 text-primary/60 group-hover/tip:text-primary transition-colors" />
+                        <span className="text-muted-foreground group-hover/tip:text-foreground transition-colors">
+                          {tip}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))
           ) : (
             <div className="col-span-full text-center py-10">
               <p className="text-muted-foreground">
