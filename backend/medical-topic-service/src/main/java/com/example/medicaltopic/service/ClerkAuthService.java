@@ -29,10 +29,83 @@ public class ClerkAuthService {
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             return response.getStatusCode() == HttpStatus.OK;
-        } catch (Exception e) {
-            return false;
+        } catch (org.springframework.web.client.RestClientException e) {
+            // log error if needed
+        } catch (IllegalArgumentException e) {
+            // log error if needed
         }
+        return false;
     }
 
-    // Add more Clerk-related methods as needed (e.g., getUser, createUser, etc.)
+    public String getUser(String userId) {
+        String url = clerkConfig.getClerkBaseUrl() + "/users/" + userId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + clerkConfig.getClerkApiKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return response.getBody();
+            }
+        } catch (org.springframework.web.client.RestClientException e) {
+            // log error if needed
+        } catch (IllegalArgumentException e) {
+            // log error if needed
+        }
+        return null;
+    }
+
+    public String createUser(String email, String password) {
+        String url = clerkConfig.getClerkBaseUrl() + "/users";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + clerkConfig.getClerkApiKey());
+        headers.set("Content-Type", "application/json");
+        String body = String.format("{\"email_address\":\"%s\",\"password\":\"%s\"}", email, password);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            if (response.getStatusCode() == HttpStatus.CREATED || response.getStatusCode() == HttpStatus.OK) {
+                return response.getBody();
+            }
+        } catch (org.springframework.web.client.RestClientException e) {
+            // log error if needed
+        } catch (IllegalArgumentException e) {
+            // log error if needed
+        }
+        return null;
+    }
+
+    public boolean deleteUser(String userId) {
+        String url = clerkConfig.getClerkBaseUrl() + "/users/" + userId;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + clerkConfig.getClerkApiKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+            return response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.NO_CONTENT;
+        } catch (org.springframework.web.client.RestClientException e) {
+            // log error if needed
+        } catch (IllegalArgumentException e) {
+            // log error if needed
+        }
+        return false;
+    }
+
+    public String listUsers() {
+        String url = clerkConfig.getClerkBaseUrl() + "/users";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + clerkConfig.getClerkApiKey());
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return response.getBody();
+            }
+        } catch (org.springframework.web.client.RestClientException e) {
+            // log error if needed
+        } catch (IllegalArgumentException e) {
+            // log error if needed
+        }
+        return null;
+    }
 }
