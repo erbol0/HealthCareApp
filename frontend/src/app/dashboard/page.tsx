@@ -40,77 +40,103 @@ const DashboardPage = async () => {
   console.log("dbUser", dbUser);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 w-full gap-6 lg:p-8 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-      <div className="flex flex-col md:col-span-1 xl:col-span-4 gap-6 w-full">
-        <div className="flex flex-col items-center justify-center w-full border border-border/60 rounded-xl py-8 backdrop-blur-sm bg-white/50 hover:bg-white/60 transition-colors">
-          <div className="w-24 h-24 mx-auto ring-2 ring-primary/20 rounded-full p-1">
-            <Image
-              src={dbUser?.image!}
-              alt={dbUser?.firstName!}
-              width={1024}
-              height={1024}
-              className="rounded-full w-full h-full object-cover"
-            />
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 w-full gap-6 lg:p-8 relative min-h-screen">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+      </div>
+
+      <div className="flex flex-col md:col-span-1 xl:col-span-4 gap-6 w-full relative z-10">
+        {/* Profile Card */}
+        <div className="group flex flex-col items-center justify-center w-full rounded-xl py-8 px-4 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-px rounded-xl bg-white/70 backdrop-blur-xl border border-border/60" />
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-28 h-28 rounded-full p-1 bg-gradient-to-br from-primary to-secondary">
+              <div className="w-full h-full rounded-full p-0.5 bg-white">
+                <Image
+                  src={dbUser?.image!}
+                  alt={dbUser?.firstName!}
+                  width={1024}
+                  height={1024}
+                  className="rounded-full w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            <h4 className="text-2xl font-bold mt-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              {dbUser?.firstName} {dbUser?.lastName}
+            </h4>
+            <p className="text-sm text-muted-foreground mt-1">
+              Age: <span className="font-semibold">{dbUser?.age}</span>
+            </p>
+            <Link
+              href="/dashboard/account/settings"
+              className={buttonVariants({
+                size: "sm",
+                className:
+                  "mt-4 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300",
+              })}
+            >
+              Update Profile
+            </Link>
           </div>
-          <h4 className="text-xl font-semibold mt-4 text-foreground/90">
-            {dbUser?.firstName} {dbUser?.lastName}
-          </h4>
-          <p className="text-sm text-muted-foreground mt-1">
-            Age: <span className="font-medium">{dbUser?.age}</span>
-          </p>
-          <Link
-            href="/dashboard/account/settings"
-            className={buttonVariants({
-              size: "sm",
-              className: "mt-4 hover:scale-105 transition-transform",
-            })}
-          >
-            Update Profile
-          </Link>
         </div>
-        <div className="flex flex-col items-start w-full border border-border/60 rounded-xl py-6 md:py-8 px-4 md:px-6">
-          <h4 className="text-lg font-semibold">Information</h4>
-          <ul className="space-y-4 text-sm mt-6">
-            <li className="grid grid-cols-2 text-start text-foreground font-medium">
-              <span>Gender:</span>
-              <span className="text-muted-foreground font-normal capitalize">
-                {dbUser?.gender}
-              </span>
-            </li>
-            <li className="grid grid-cols-2 text-start text-foreground font-medium">
-              <span>Blood Group:</span>
-              <span className="text-muted-foreground font-normal">
-                {dbUser?.bloodGroup}
-              </span>
-            </li>
-            <li className="grid grid-cols-2 text-start text-foreground font-medium">
-              <span>Symptoms:</span>
-              <span className="text-muted-foreground font-normal capitalize">
-                {dbUser?.symptoms
-                  ?.map((symptom) => symptom.name)
-                  .join(", ")
-                  .replace(/_/g, " ")
-                  .toLowerCase()}
-              </span>
-            </li>
-            <li className="grid grid-cols-2 text-start text-foreground font-medium">
-              <span>Medications:</span>
-              <span className="text-muted-foreground font-normal capitalize">
-                {dbUser?.medications
-                  ?.map((medication) => medication.name)
-                  .join(", ")
-                  .replace("none", "None")}
-              </span>
-            </li>
+
+        {/* Information Card */}
+        <div className="flex flex-col items-start w-full rounded-xl py-6 px-6 bg-white/70 backdrop-blur-xl border border-border/60 shadow-lg shadow-black/5">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <StethoscopeIcon className="w-5 h-5 text-primary" />
+            </div>
+            <h4 className="text-lg font-bold bg-gradient-to-r from-primary/80 to-secondary/80 bg-clip-text text-transparent">
+              Medical Information
+            </h4>
+          </div>
+
+          <ul className="space-y-4 w-full">
+            {/* Replace existing list items with enhanced styling */}
+            {(
+              [
+                { label: "Gender", value: dbUser?.gender },
+                { label: "Blood Group", value: dbUser?.bloodGroup },
+                {
+                  label: "Symptoms",
+                  value: dbUser?.symptoms
+                    ?.map((s) => s.name)
+                    .join(", ")
+                    .replace(/_/g, " "),
+                },
+                {
+                  label: "Medications",
+                  value: dbUser?.medications?.map((m) => m.name).join(", "),
+                },
+              ] as const
+            ).map((item, i) => (
+              <li
+                key={i}
+                className="group flex flex-col space-y-1 p-3 rounded-lg hover:bg-primary/5 transition-colors"
+              >
+                <span className="text-sm font-medium text-muted-foreground">
+                  {item.label}
+                </span>
+                <span className="font-medium capitalize">
+                  {item.value || "None"}
+                </span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
-      <div className="flex flex-col md:col-span-1 xl:col-span-8 gap-8 w-full">
+
+      {/* Right Column */}
+      <div className="flex flex-col md:col-span-1 xl:col-span-8 gap-8 w-full relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 w-full">
+          {/* Enhanced Magic Cards */}
           <MagicCard
-            color="rgba(239,68,68,.08)"
-            className="border-2 border-red-100 max-w-full w-full"
+            color="rgba(239,68,68,.12)"
+            className="border border-red-200/50 hover:border-red-300/50 max-w-full w-full shadow-lg shadow-red-500/5 hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300"
           >
             <Link
               href="/dashboard/health-status"
@@ -174,11 +200,14 @@ const DashboardPage = async () => {
             </Link>
           </MagicCard>
         </div>
+
+        {/* Recommendations Section */}
         <div className="flex flex-col items-start w-full space-y-4">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex items-center gap-2">
+            <NotepadTextIcon className="w-6 h-6" />
             Health Recommendations
           </h3>
-          <div className="max-h-[calc(100vh-24rem)] w-full">
+          <div className="w-full">
             <Recommendations
               symptoms={symptoms}
               medications={medications}

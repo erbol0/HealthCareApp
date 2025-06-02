@@ -7,7 +7,6 @@ import { ClipboardList, LoaderIcon, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toast } from "sonner";
 
 interface Props {
   symptoms: Symptom[];
