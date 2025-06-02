@@ -53,7 +53,9 @@ const PostPage = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [imageFiles, setImageFiles] = useState<(File | undefined)[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<(string | undefined)[]>(
+    []
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
