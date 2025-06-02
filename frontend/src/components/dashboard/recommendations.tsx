@@ -34,69 +34,19 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const parseRecommendations = (markdown: string): RecommendationSection[] => {
-    console.log("Raw markdown:", markdown); // Debug log
-    const sections: RecommendationSection[] = [];
-    const lines = markdown.split("\n").filter((line) => line.trim() !== "");
-    let currentSection: RecommendationSection | null = null;
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith("#")) {
-        if (currentSection) sections.push(currentSection);
-        currentSection = {
-          title: trimmedLine.replace(/#/g, "").trim(),
-          icon: getIconForSection(trimmedLine),
-          content: [],
-        };
-      } else if (trimmedLine.startsWith("-") || trimmedLine.startsWith("*")) {
-        if (!currentSection) {
-          currentSection = {
-            title: "General Recommendations",
-            icon: <Shield className="w-5 h-5" />,
-            content: [],
-          };
-        }
-        currentSection.content.push(trimmedLine.replace(/^[-*]\s*/, "").trim());
-      } else if (trimmedLine && currentSection) {
-        // Handle non-list text as content too
-        currentSection.content.push(trimmedLine);
-      }
-    });
-
-    if (currentSection) {
-      sections.push(currentSection);
-    }
-
-    console.log("Parsed sections:", sections); // Debug log
-    return sections;
-  };
-
-  const getIconForSection = (title: string) => {
-    const t = title.toLowerCase();
-    if (t.includes("medication")) return <Pill className="w-5 h-5" />;
-    if (t.includes("exercise")) return <Activity className="w-5 h-5" />;
-    if (t.includes("health")) return <Heart className="w-5 h-5" />;
-    return <Shield className="w-5 h-5" />;
-  };
-
   const { mutate } = useMutation({
-    mutationKey: ["get-recommendations"], // Fixed mutation key
+    mutationKey: ["get-tips"],
     mutationFn: async () => {
       setIsLoading(true);
-      try {
-        const res = await getRecommendations({ symptoms, medications, user });
-        console.log("API response:", res); // Debug log
-        localStorage.setItem("cura_health_recommendations", res);
-        setRecommendations(res);
-        return res;
-      } finally {
-        setIsLoading(false);
-      }
+      const res = await getRecommendations({ symptoms, medications, user });
+      localStorage.setItem("cura_health_recommendations", res);
+      setRecommendations(res);
+      setIsLoading(false);
+      return res;
     },
     onError: (error) => {
-      console.error("Recommendation error:", error); // Debug log
-      setError("Error getting health recommendations");
+      setIsLoading(false);
+      setError("Error getting health tips");
     },
     onSuccess: () => {
       setError(null);
@@ -112,6 +62,36 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
       mutate();
     }
   }, [mutate]);
+
+  const parseRecommendations = (markdown: string): RecommendationSection[] => {
+    const sections: RecommendationSection[] = [];
+    const lines = markdown.split("\n");
+    let currentSection: RecommendationSection | null = null;
+
+    lines.forEach((line) => {
+      if (line.startsWith("##")) {
+        if (currentSection) sections.push(currentSection);
+        currentSection = {
+          title: line.replace("##", "").trim(),
+          icon: getIconForSection(line),
+          content: [],
+        };
+      } else if (line.startsWith("-") && currentSection) {
+        currentSection.content.push(line.replace("-", "").trim());
+      }
+    });
+
+    if (currentSection) sections.push(currentSection);
+    return sections;
+  };
+
+  const getIconForSection = (title: string) => {
+    const t = title.toLowerCase();
+    if (t.includes("medication")) return <Pill className="w-5 h-5" />;
+    if (t.includes("exercise")) return <Activity className="w-5 h-5" />;
+    if (t.includes("health")) return <Heart className="w-5 h-5" />;
+    return <Shield className="w-5 h-5" />;
+  };
 
   return (
     <div className="flex flex-col w-full p-6 rounded-xl border border-border/80 bg-gradient-to-br from-white/50 to-white/30 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
