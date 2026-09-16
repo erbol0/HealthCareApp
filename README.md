@@ -1,43 +1,46 @@
-AkylMed: AI-Powered Medical Intelligence & Recovery Dashboard
-AkylMed bridges the gap between patient discussions on social media and structured clinical insights. Using AI models for sentiment analysis, entity extraction, and credibility scoring, AkylMed provides patients and healthcare professionals with actionable data on drug efficacy, side effects, and recovery timelines.
+# 🏥 AkylMed
+> **AI-Powered Medical Intelligence & Recovery Dashboard**
 
-Core Features
-1. Medical Intelligence Dashboard
-Data Ingestion: Scrapes medical discussions from online subreddits (e.g., r/Accutane, r/Metformin).
+AkylMed bridges the gap between unstructured patient discussions on social media and structured clinical insights. By leveraging advanced AI models for sentiment analysis, entity extraction, and credibility scoring, AkylMed provides both patients and healthcare professionals with actionable data on drug efficacy, side effects, and recovery timelines.
 
-Demo Speed Optimization:
+---
 
-API Limit: 10 comments per run (~10–15 second processing).
+## ✨ Core Features
 
-Search Depth: 5 pages of comments per subreddit.
+### 📊 Medical Intelligence Dashboard
+* **Data Ingestion:** Scrapes and structures medical discussions from target online communities (e.g., `r/Accutane`, `r/Metformin`).
+* **Demo Speed Optimization:**
+  * **API Processing:** Caps at 10 comments per run (~10–15s runtime).
+  * **Search Depth:** Up to 5 pages of comments per subreddit.
+  * **Network Rules:** Aggressive 3-second timeouts paired with 0.05s delays for rapid execution.
+* **Recovery Analytics:** Interactive visualization of symptom frequency and recovery progress powered by **Recharts**.
+* **Credibility Score ("BS-Meter"):** Employs Natural Language Inference (NLI) to cross-reference patient claims on social media against official FDA adverse event databases.
 
-Network Parameters: Aggressive timeouts (3s) with 0.05s delays.
+### 🛡️ Patient Empowerment Tools
+* **Personalized Recovery Trace:** Map individual side effects directly against aggregated community statistics.
+* **Treatment Planning:** Locate nearby hospitals and clinics seamlessly via the **Zembra API**.
+* **Privacy First:** Built-in HIPAA-compliant pipeline automatically strips Personally Identifiable Information (PII) prior to data processing or storage.
 
-Recovery Analytics: Visualizes symptom frequency and recovery progress using Recharts.
+---
 
-Credibility Score (BS-Meter): Employs Natural Language Inference (NLI) to cross-reference social media drug claims against official FDA adverse event data.
+## 🛠️ Tech Stack & Prerequisites
 
-2. Patient Empowerment Tools
-Personalized Recovery Trace: Tracks individual side effects against aggregated community statistics.
+* **Backend:** Java, Spring Boot, Maven
+* **Frontend:** Node.js, React, Recharts
+* **APIs & Models:** NLI Models, FDA Open Data, Zembra API
 
-Treatment Planning: Locates local hospitals and clinics via the Zembra API.
+---
 
-Privacy First: HIPAA-compliant pipeline that strips personally identifiable information (PII) before processing or storing data.
+## 🚀 Quick Start Guide
 
+### 1. Backend Setup
 
+```bash
+# Navigate to backend directory
+cd backend
 
-
-backend:
-
-# Build the project
-
+# Build the project dependencies
 mvn clean install
 
-# Run the application
-
+# Run the Spring Boot application
 mvn spring-boot:run
-
-frontend:
-
-npm install
-npm run dev
