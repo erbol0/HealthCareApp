@@ -21,7 +21,6 @@ AkylMed bridges the gap between unstructured patient discussions on social media
 * **Treatment Planning:** Locate nearby hospitals and clinics seamlessly via the **Zembra API**.
 * **Privacy First:** Built-in HIPAA-compliant pipeline automatically strips Personally Identifiable Information (PII) prior to data processing or storage.
 
----
 
 ## 🛠️ Tech Stack & Prerequisites
 
@@ -29,10 +28,7 @@ AkylMed bridges the gap between unstructured patient discussions on social media
 * **Frontend:** Node.js, React, Recharts
 * **APIs & Models:** NLI Models, FDA Open Data, Zembra API
 
----
-
 ## 🚀 Quick Start Guide
-
 ### 1. Backend Setup
 
 ```bash
