@@ -38,12 +38,15 @@ const SignInPage = () => {
             const signInAttempt = await signIn.create({
                 identifier: email,
                 password,
-                redirectUrl: "/auth/auth-callback",
             });
 
             if (signInAttempt.status === "complete") {
+                if (!signInAttempt.createdSessionId) {
+                    throw new Error("Sign-in completed without creating a session");
+                }
+
                 await setActive({ session: signInAttempt.createdSessionId });
-                router.push("/dashboard");
+                router.push("/auth/auth-callback");
             } else {
                 console.error(JSON.stringify(signInAttempt, null, 2));
                 toast.error("Invalid email or password. Please try again.");

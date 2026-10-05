@@ -8,6 +8,7 @@ import createCheckoutSession from "./create-checkout-session";
 import getHealthTips from "./get-health-tips";
 import getMessags from "./get-messages";
 import getRecommendations from "./get-recommendations";
+export { default as generateChatResponse } from "./generate-chat-response";
 
 export {
   updateUser,

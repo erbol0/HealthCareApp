@@ -1,7 +1,6 @@
 "use client";
 
-import { createMessages } from "@/actions";
-import ai from "@/lib/google";
+import { createMessages, generateChatResponse } from "@/actions";
 import { generatePrompt } from "@/utils";
 import { Medication, Message, Symptom, User } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
@@ -54,45 +53,8 @@ const ChatBox = ({ isPro, user, symptoms, medications, messages }: Props) => {
       createMessages({ role: "model", message: message }),
   });
 
-  // const handleSendMessage = async (e: FormEvent) => {
-  //     e.preventDefault();
-
-  //     if (!input.trim()) return;
-
-  //     const newMessages = [...msgs];
-  //     setMsgs(newMessages);
-  //     setInput("");
-  //     setIsLoading(true);
-
-  //     console.log("starting")
-
-  //     try {
-  //         const model = ai.getGenerativeModel({
-  //             model: "gemini-1.5-flash"
-  //         });
-
-  //         const prompt = newMessages.map(message => `${message.role === "USER" ? "User" : "Assistant"}: ${message.content}`).join("\n");
-  //         const result = await model.generateContent(prompt);
-  //         const res = await result.response;
-
-  //         const botMessage = { role: "MODEL", content: res.text() };
-
-  //         createUserMessage(input);
-  //         console.log("created user message")
-  //         createBotMessage(botMessage.content);
-  //         console.log("created bot message")
-
-  //         setMsgs([...newMessages!, { role: "MODEL", content: res.text() }]);
-  //     } catch (error) {
-  //         console.log("Error generating response:", error);
-  //     } finally {
-  //         setIsLoading(false);
-  //     }
-  // };
-
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     scrollToBottom();
 
     if (isPro === false && messages.length >= 10) {
@@ -103,58 +65,31 @@ const ChatBox = ({ isPro, user, symptoms, medications, messages }: Props) => {
 
     if (!input.trim()) return;
 
-    const newMessages = [...msgs, { role: "user", content: input }];
+    const messageText = input;
+    const newMessages = [...msgs, { role: "user", content: messageText }];
     // @ts-ignore
     setMsgs(newMessages);
     setInput("");
+    setError("");
     setIsLoading(true);
 
     try {
-      const model = ai.getGenerativeModel({
-        // model: "gemini-1.5-flash"
-        model: "gemini-1.5-pro-latest",
-      });
-
-      const promptText = generatePrompt({ symptoms, medications, user });
-
-      const chat = model.startChat({
-        history: [
-          {
-            role: "user",
-            parts: [{ text: promptText }],
-          },
-        ],
-        ...newMessages.map((message) => ({
+      const botMessageContent = await generateChatResponse({
+        prompt: generatePrompt({ symptoms, medications, user }),
+        messages: msgs.map((message) => ({
           role: message.role,
-          parts: [{ text: message.content }],
+          content: message.content,
         })),
-        generationConfig: {
-          maxOutputTokens: 200,
-          temperature: 0,
-        },
-        systemInstruction: {
-          role: "model",
-          parts: [
-            {
-              text: promptText,
-            },
-          ],
-        },
+        input: messageText,
       });
-
-      const result = await chat.sendMessage(input);
-      const response = result.response;
-      const botMessageContent = response.text();
-
       const botMessage = { role: "model", content: botMessageContent };
 
-      createUserMessage(input);
+      createUserMessage(messageText);
       createBotMessage(botMessage.content);
-
       // @ts-ignore
       setMsgs((prev) => [...prev, botMessage]);
     } catch (error) {
-      setError("Error generating response");
+      setError(error instanceof Error ? error.message : "Error generating response");
     } finally {
       setIsLoading(false);
     }

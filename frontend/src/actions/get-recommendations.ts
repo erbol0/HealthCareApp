@@ -1,6 +1,6 @@
 "use server";
 
-import ai from "@/lib/google";
+import ai from "@/lib/google-server";
 import { Symptom, Medication, User } from "@prisma/client";
 
 interface Props {
@@ -56,7 +56,7 @@ const getRecommendations = async ({ symptoms, medications, user }: Props) => {
   const prompt = generateRecommendations({ symptoms, medications, user });
 
   const model = ai.getGenerativeModel({
-    model: "gemini-1.5-pro-latest",
+    model: "gemini-3.1-flash-lite",
     systemInstruction:
       "You are a health recommendation system. Your task is to provide personalized health recommendations based on the user's information, symptoms, and medications.\nBased on the user information, generate up to 5 concise, personalized health recommendations. Follow these guidelines:\n\n1. Analyze the user's information, symptoms, and medications.\n2. Provide relevant and important health recommendations.\n3. If asked, suggest necessary medicines and precautions.\n4. Do not include disclaimers or warnings.\n5. Do not advise the user to consult a doctor or seek medical help.\n6. Only provide general health recommendations based on the given information.\n7. Ignore questions unrelated to the provided health conditions, symptoms, and medications.\n8. Do not answer queries about coding, sports, or other unrelated topics.\nRemember to keep your recommendations concise and directly related to the user's health information provided.\n\n",
   });
@@ -66,8 +66,30 @@ const getRecommendations = async ({ symptoms, medications, user }: Props) => {
   }
 
   try {
-    const result = await model.generateContent(prompt);
-    const res = await result.response;
+    let response;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const result = await model.generateContent(prompt);
+        response = await result.response;
+        break;
+      } catch (error) {
+        const status = (error as { status?: number }).status;
+        const isTransient = [429, 500, 502, 503, 504].includes(status ?? 0);
+
+        if (!isTransient || attempt === 2) {
+          throw error;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
+    }
+
+    if (!response) {
+      throw new Error("Gemini did not return a response");
+    }
+
+    const res = response;
     const recommendations = res.text();
 
     if (!recommendations) {

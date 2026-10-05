@@ -31,7 +31,7 @@ const Recommendations = ({ symptoms, medications, user }: Props) => {
     },
     onError: (error) => {
       setIsLoading(false);
-      setError("Error getting health tips");
+      setError(error instanceof Error ? error.message : "Error getting health tips");
     },
     onSuccess: () => {
       setError(null);
