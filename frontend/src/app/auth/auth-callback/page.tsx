@@ -7,7 +7,7 @@ const AuthCallbackPage = async () => {
   const user = await currentUser();
 
   if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
-    return redirect("/signin");
+    return redirect("/auth/signin");
   }
 
   const dbUser = await db.user.findFirst({

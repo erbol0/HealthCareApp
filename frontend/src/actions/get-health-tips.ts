@@ -1,6 +1,6 @@
 "use server";
 
-import ai from "@/lib/google";
+import ai from "@/lib/google-server";
 import { Symptom, Medication, User } from "@prisma/client";
 
 interface Props {
@@ -43,7 +43,7 @@ const getHealthTips = async ({ symptoms, medications, user }: Props) => {
     const prompt = generateTips({ symptoms, medications, user });
 
     const model = ai.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-3.1-flash-lite",
         systemInstruction: "Generate health tips based on the user's symptoms and medications.Please only provide general health tips and do not give any medical advice.Do not tell the user to consult a doctor or seek medical help.Just provide general health recommendations based on the information provided."
     });
 
@@ -52,16 +52,44 @@ const getHealthTips = async ({ symptoms, medications, user }: Props) => {
     }
 
     try {
-        const result = await model.generateContent(prompt);
+        let response;
 
-        const res = await result.response;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+                const result = await model.generateContent(prompt);
+                response = await result.response;
+                break;
+            } catch (error) {
+                const status = (error as { status?: number }).status;
+                const isTransient = [429, 500, 502, 503, 504].includes(status ?? 0);
+
+                if (!isTransient || attempt === 2) {
+                    throw error;
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+            }
+        }
+
+        if (!response) {
+            throw new Error("Gemini did not return a response");
+        }
+
+        const res = response;
 
         const recommendations = res.text();
 
+        if (!recommendations) {
+            throw new Error("No health tips were generated");
+        }
+
         return recommendations;
     } catch (error) {
-        console.error(error);
-        throw new Error("Error generating health tips");
+        console.error("Error generating health tips:", error);
+        if (error instanceof Error) {
+            throw new Error(`Failed to generate health tips: ${error.message}`);
+        }
+        throw new Error("Failed to generate health tips");
     }
 };
 
